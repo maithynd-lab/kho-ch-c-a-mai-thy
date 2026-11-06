@@ -13,6 +13,8 @@ interface Props {
   sample: number;
   onSample: (i: number) => void;
   onPickFonts: () => void;
+  hiddenDemo: number;
+  onRestoreDemo: () => void;
 }
 
 const FILTERS: [Filter, string][] = [['all', 'Tất cả'], ['vn', 'Việt Hóa'], ['no', 'Chưa Việt Hóa']];
@@ -42,6 +44,9 @@ export function Sidebar(p: Props) {
             </button>
           ))}
         </div>
+        {p.hiddenDemo > 0 && (
+          <button className="restore-btn" onClick={p.onRestoreDemo}>↺ Khôi phục {p.hiddenDemo} font mẫu đã xóa</button>
+        )}
       </div>
 
       <div className="side-section">

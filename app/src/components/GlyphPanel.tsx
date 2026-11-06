@@ -37,7 +37,7 @@ export function GlyphPanel({ font: f, si, txt, dl, onClose, onSel, onMix, onTogg
           <button className="btn-outline-accent" onClick={onMix}>Mix với font text →</button>
           <button className="btn-outline" onClick={onToggleVn}>{f.vn ? 'Bỏ đánh dấu Việt Hóa' : 'Đánh dấu Việt Hóa'}</button>
           <button className="btn-outline" onClick={onPickImg}>{f.img ? 'Đổi ảnh preview' : 'Thêm ảnh preview'}</button>
-          {!f.demo && <button className="btn-outline btn-danger" onClick={onRemove}>Xóa font</button>}
+          <button className="btn-outline btn-danger" onClick={onRemove}>Xóa font</button>
         </div>
 
         <div className="glyph-section">

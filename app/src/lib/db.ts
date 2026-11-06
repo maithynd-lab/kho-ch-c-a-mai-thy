@@ -48,6 +48,14 @@ export const deleteFamily = (id: string) => tx('families', 'readwrite', s => s.d
 export const getLegacy = () => tx<LegacyRecord[]>('fonts', 'readonly', s => s.getAll());
 export const clearLegacy = () => tx('fonts', 'readwrite', s => s.clear());
 
+const HIDDEN_KEY = 'khochu_hidden_demo';
+export const loadHiddenDemo = (): string[] => {
+  try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); } catch { return []; }
+};
+export const storeHiddenDemo = (ids: string[]) => {
+  try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids)); } catch { /* storage unavailable */ }
+};
+
 const PINS_KEY = 'khochu_pins';
 export const loadPins = <T,>(): T[] => {
   try { return JSON.parse(localStorage.getItem(PINS_KEY) || '[]'); } catch { return []; }

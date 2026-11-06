@@ -275,3 +275,20 @@ button { color: inherit; }
   padding: 12px 0; border-bottom: 1px solid var(--line);
 }
 .glyph-chars { font-size: 26px; line-height: 1.45; letter-spacing: 0.08em; overflow-wrap: anywhere; }
+
+/* ---------- Delete ---------- */
+.card-media { position: relative; }
+.card-del {
+  position: absolute; top: 10px; right: 10px; z-index: 1; min-width: 32px; height: 32px; padding: 0 10px;
+  border-radius: 999px; border: 1px solid var(--line); background: oklch(0.17 0.02 280 / 0.85); color: var(--text-2);
+  font: 700 13px var(--sans); cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s;
+}
+.card:hover .card-del, .card-del:focus-visible, .card-del.is-armed { opacity: 1; }
+.card-del:hover { color: var(--danger); border-color: var(--danger); }
+.card-del.is-armed { background: var(--danger); border-color: var(--danger); color: var(--bg); }
+@media (hover: none) { .card-del { opacity: 1; } }
+.restore-btn {
+  background: transparent; border: none; padding: 4px 10px; text-align: left; font-size: 12px;
+  color: var(--accent); cursor: pointer;
+}
+.restore-btn:hover { text-decoration: underline; }

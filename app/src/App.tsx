@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'r
 import type { Family, Filter, FontPick, Pin, Variant, View } from './types';
 import { buildDemoFamilies, DEFAULT_B_TEXT, DEFAULT_H_TEXT, SAMPLES, SHOW_DEMO } from './lib/constants';
 import { defIdx, detectVN, FONT_RE, inspect, key, sortV, uid } from './lib/font';
-import { clearLegacy, deleteFamily, getAllFamilies, getLegacy, loadPins, putFamily, storePins, type FamilyRecord } from './lib/db';
+import { clearLegacy, deleteFamily, getAllFamilies, getLegacy, loadHiddenDemo, loadPins, putFamily, storeHiddenDemo, storePins, type FamilyRecord } from './lib/db';
 import { Sidebar } from './components/Sidebar';
 import { Library } from './components/Library';
 import { MixView } from './components/MixView';
@@ -37,6 +37,7 @@ export default function App() {
   const [bText, setBText] = useState(DEFAULT_B_TEXT);
   const [hq, setHQ] = useState('');
   const [bq, setBQ] = useState('');
+  const [hiddenDemo, setHiddenDemo] = useState<string[]>(loadHiddenDemo);
 
   const fontsRef = useRef(fonts);
   fontsRef.current = fonts;
@@ -171,11 +172,19 @@ export default function App() {
 
   const remove = (id: string) => {
     const f = fontsRef.current.find(x => x.id === id);
-    if (!f || f.demo) return;
-    setFonts(fs => fs.filter(x => x.id !== id));
+    if (!f) return;
     setGlyph(null);
-    deleteFamily(id).catch(() => {});
+    if (f.demo) {
+      // Demo fonts live in code, so "delete" hides them; they can be restored.
+      setHiddenDemo(h => { const next = [...h, id]; storeHiddenDemo(next); return next; });
+    } else {
+      setFonts(fs => fs.filter(x => x.id !== id));
+      deleteFamily(id).catch(() => {});
+    }
+    flash('Đã xóa ' + f.name);
   };
+
+  const restoreDemo = () => { setHiddenDemo([]); storeHiddenDemo([]); flash('Đã khôi phục font mẫu'); };
 
   const downloadAll = (f: Family) => {
     f.variants.forEach((v, i) =>
@@ -221,7 +230,7 @@ export default function App() {
   }, [glyph]);
 
   // ---------- derived ----------
-  const all = fonts.filter(f => SHOW_DEMO || !f.demo);
+  const all = fonts.filter(f => !f.demo || (SHOW_DEMO && !hiddenDemo.includes(f.id)));
   const txt = text || SAMPLES[sample];
   const qq = q.trim().toLowerCase();
   const vnN = all.filter(f => f.vn).length;
@@ -264,6 +273,8 @@ export default function App() {
             text={text} onText={setText}
             sample={sample} onSample={i => { setSample(i); setText(''); }}
             onPickFonts={openFontPicker}
+            hiddenDemo={hiddenDemo.length}
+            onRestoreDemo={restoreDemo}
           />
         )}
         <main className="main">
@@ -281,11 +292,15 @@ export default function App() {
               onOpen={id => setGlyph(id)}
               onDropOn={(id, files) => { setDrag(false); addFiles(files, id); }}
               dlProps={dlProps}
+              onRemove={remove}
             />
           )}
-          {view === 'mix' && (
+          {view === 'mix' && all.length === 0 && (
+            <div className="empty">Kho đang trống. Thêm font ở tab Thư viện để mix.</div>
+          )}
+          {view === 'mix' && all.length > 0 && (
             <MixView
-              pool={fonts}
+              pool={all}
               mixH={mixH} setMixH={setMixH}
               mixB={mixB} setMixB={setMixB}
               pins={pins} savePins={savePins}
