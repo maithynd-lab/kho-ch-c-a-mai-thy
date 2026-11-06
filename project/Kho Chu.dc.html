@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Baloo+2:wght@400..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Pacifico&family=Lobster&family=Anton&family=Patrick+Hand&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Abril+Fatface&family=Monoton&family=Righteous&family=Shrikhand&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;700&family=Archivo:wght@400..900&display=swap">
+<style>
+body{margin:0;background:#e8e6e1;}
+a{color:inherit;text-decoration:none;}
+a:hover{text-decoration:underline;}
+input,button{font:inherit;}
+</style>
+</helmet>
+<section style="display:flex;flex-wrap:wrap;gap:80px;padding:80px;align-items:flex-start;">
+
+<div id="1a" style="display:flex;flex-direction:column;gap:16px;">
+  <div style="font:700 14px 'JetBrains Mono',monospace;color:#222;">1a · Poster vàng – đỏ</div>
+  <div onDragOver="{{ overA }}" onDragLeave="{{ leave }}" onDrop="{{ drop }}" style="position:relative;width:1280px;min-height:1600px;background:oklch(0.88 0.17 95);color:oklch(0.2 0.02 60);font-family:'Be Vietnam Pro',sans-serif;padding:48px;box-sizing:border-box;display:flex;flex-direction:column;gap:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;">
+      <h1 style="margin:0;font-family:'Anton',sans-serif;font-weight:400;font-size:180px;line-height:0.85;text-transform:uppercase;letter-spacing:-2px;">Kho chữ</h1>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;">
+        <div style="font-weight:700;font-size:18px;">{{ counts.all }} font · {{ counts.vn }} Việt Hóa</div>
+        <button onClick="{{ pickFonts }}" style="background:oklch(0.62 0.22 28);color:#fff;border:3px solid oklch(0.2 0.02 60);box-shadow:5px 5px 0 oklch(0.2 0.02 60);padding:14px 22px;font-weight:900;font-size:18px;cursor:pointer;text-transform:uppercase;" style-active="transform:translate(3px,3px);box-shadow:2px 2px 0 oklch(0.2 0.02 60);">+ Thêm font</button>
+      </div>
+    </div>
+    <div style="border:3px dashed oklch(0.2 0.02 60);padding:18px 22px;font-size:16px;font-weight:700;">Kéo thả file .ttf .otf .woff và ảnh preview vào bất kỳ đâu. Ảnh trùng tên với file font sẽ tự gắn vào font đó.</div>
+    <div style="background:oklch(0.2 0.02 60);color:oklch(0.88 0.17 95);padding:24px;display:flex;flex-direction:column;gap:18px;">
+      <input value="{{ text }}" onChange="{{ onText }}" placeholder="Gõ chữ để test trên tất cả font…" style="background:transparent;border:none;border-bottom:3px solid oklch(0.88 0.17 95);color:oklch(0.88 0.17 95);font-size:36px;font-weight:700;padding:6px 0;outline:none;">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <sc-for list="{{ samples }}" as="sm" hint-placeholder-count="4">
+          <sc-if value="{{ sm.active }}"><button onClick="{{ sm.pick }}" style="background:oklch(0.88 0.17 95);color:oklch(0.2 0.02 60);border:2px solid oklch(0.88 0.17 95);padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;">{{ sm.t }}</button></sc-if>
+          <sc-if value="{{ sm.inactive }}"><button onClick="{{ sm.pick }}" style="background:transparent;color:oklch(0.88 0.17 95);border:2px solid oklch(0.88 0.17 95);padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;">{{ sm.t }}</button></sc-if>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:center;font-size:14px;font-weight:700;">
+        <label style="display:flex;gap:10px;align-items:center;">ĐỘ ĐẬM {{ weight }}<input type="range" min="100" max="900" step="100" value="{{ weight }}" onChange="{{ onWeight }}" style="accent-color:oklch(0.62 0.22 28);width:160px;"></label>
+        <label style="display:flex;gap:10px;align-items:center;">CỠ {{ size }}<input type="range" min="16" max="96" value="{{ size }}" onChange="{{ onSize }}" style="accent-color:oklch(0.62 0.22 28);width:160px;"></label>
+        <sc-if value="{{ italicOn }}"><button onClick="{{ toggleItalic }}" style="background:oklch(0.62 0.22 28);color:#fff;border:2px solid oklch(0.62 0.22 28);padding:6px 14px;font-style:italic;font-weight:700;cursor:pointer;">Italic</button></sc-if>
+        <sc-if value="{{ italicOff }}"><button onClick="{{ toggleItalic }}" style="background:transparent;color:oklch(0.88 0.17 95);border:2px solid oklch(0.88 0.17 95);padding:6px 14px;font-style:italic;font-weight:700;cursor:pointer;">Italic</button></sc-if>
+        <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Tìm tên font" style="margin-left:auto;background:oklch(0.88 0.17 95);color:oklch(0.2 0.02 60);border:none;padding:10px 14px;font-weight:700;width:220px;outline:none;">
+      </div>
+    </div>
+    <div style="display:flex;gap:0;">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+        <sc-if value="{{ tb.active }}"><button onClick="{{ tb.pick }}" style="white-space:nowrap;flex:none;background:oklch(0.62 0.22 28);color:#fff;border:3px solid oklch(0.2 0.02 60);margin-right:-3px;padding:12px 22px;font-weight:900;font-size:16px;text-transform:uppercase;cursor:pointer;">{{ tb.label }} ({{ tb.n }})</button></sc-if>
+        <sc-if value="{{ tb.inactive }}"><button onClick="{{ tb.pick }}" style="white-space:nowrap;flex:none;background:transparent;color:oklch(0.2 0.02 60);border:3px solid oklch(0.2 0.02 60);margin-right:-3px;padding:12px 22px;font-weight:900;font-size:16px;text-transform:uppercase;cursor:pointer;">{{ tb.label }} ({{ tb.n }})</button></sc-if>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:24px;font-weight:700;padding:40px 0;">Không có font nào khớp.</div></sc-if>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;">
+      <sc-for list="{{ items }}" as="f" hint-placeholder-count="8">
+        <div onDragOver="{{ f.over }}" onDrop="{{ f.onDrop }}" style="background:oklch(0.98 0.02 95);border:3px solid oklch(0.2 0.02 60);box-shadow:6px 6px 0 oklch(0.2 0.02 60);display:flex;flex-direction:column;">
+          <div onClick="{{ f.openA }}" style="aspect-ratio:4/3;border-bottom:3px solid oklch(0.2 0.02 60);overflow:hidden;cursor:pointer;">
+            <sc-if value="{{ f.hasImg }}" hint-placeholder-val="{{ false }}"><img src="{{ f.img }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></sc-if>
+            <sc-if value="{{ f.noImg }}"><div style="width:100%;height:100%;background:oklch(0.62 0.22 28);color:oklch(0.98 0.02 95);display:flex;align-items:center;justify-content:center;font-size:96px;font-family:{{ f.family }};">Aa</div></sc-if>
+          </div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;">
+            <div style="font-family:{{ f.family }};font-weight:{{ f.fw }};font-style:{{ f.fs }};font-size:{{ f.px }};line-height:1.15;overflow-wrap:anywhere;flex:1;">{{ f.txt }}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                <div style="font-weight:900;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ f.name }}</div>
+                <div style="font-size:12px;font-weight:700;">{{ f.tag }}</div>
+              </div>
+              <sc-if value="{{ f.vn }}"><span style="background:oklch(0.2 0.02 60);color:oklch(0.88 0.17 95);font-size:11px;font-weight:900;padding:4px 7px;white-space:nowrap;">VIỆT HÓA</span></sc-if>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button onClick="{{ f.openA }}" style="flex:1;background:transparent;border:2px solid oklch(0.2 0.02 60);padding:8px;font-weight:900;font-size:13px;cursor:pointer;">GLYPH</button>
+              <a href="{{ f.dl }}" download="{{ f.dlName }}" target="{{ f.target }}" style="flex:1;text-align:center;background:oklch(0.2 0.02 60);color:oklch(0.88 0.17 95);padding:10px 8px;font-weight:900;font-size:13px;">TẢI ↓</a>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ dragA }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:oklch(0.62 0.22 28 / 0.92);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:120px;text-transform:uppercase;pointer-events:none;">Thả vào đây</div></sc-if>
+    <sc-if value="{{ glyphA }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeGlyph }}" style="position:absolute;inset:0;background:oklch(0.2 0.02 60 / 0.75);padding:48px;box-sizing:border-box;">
+        <div onClick="{{ stop }}" style="background:oklch(0.98 0.02 95);border:3px solid oklch(0.2 0.02 60);box-shadow:10px 10px 0 oklch(0.62 0.22 28);padding:40px;display:flex;flex-direction:column;gap:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-family:'Anton',sans-serif;font-size:64px;text-transform:uppercase;line-height:1;">{{ g.name }}</div>
+              <div style="font-weight:700;">{{ g.tag }} · {{ g.vnLabel }}</div>
+            </div>
+            <button onClick="{{ closeGlyph }}" style="background:oklch(0.2 0.02 60);color:#fff;border:none;padding:10px 16px;font-weight:900;cursor:pointer;">ĐÓNG ✕</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <a href="{{ g.dl }}" download="{{ g.dlName }}" target="{{ g.target }}" style="background:oklch(0.62 0.22 28);color:#fff;border:3px solid oklch(0.2 0.02 60);padding:10px 16px;font-weight:900;">TẢI FONT ↓</a>
+            <button onClick="{{ g.toggleVn }}" style="background:transparent;border:3px solid oklch(0.2 0.02 60);padding:10px 16px;font-weight:900;cursor:pointer;">{{ g.vnAction }}</button>
+            <button onClick="{{ g.pickImg }}" style="background:transparent;border:3px solid oklch(0.2 0.02 60);padding:10px 16px;font-weight:900;cursor:pointer;">{{ g.imgAction }}</button>
+            <sc-if value="{{ g.canDelete }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.remove }}" style="background:transparent;border:3px solid oklch(0.2 0.02 60);padding:10px 16px;font-weight:900;cursor:pointer;">XÓA</button></sc-if>
+          </div>
+          <div style="font-family:{{ g.family }};font-weight:{{ g.fw }};font-style:{{ g.fs }};font-size:72px;line-height:1.1;border-top:3px solid oklch(0.2 0.02 60);border-bottom:3px solid oklch(0.2 0.02 60);padding:24px 0;">{{ g.txt }}</div>
+          <sc-for list="{{ glyphGroups }}" as="gg" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="font-weight:900;font-size:14px;text-transform:uppercase;">{{ gg.title }}</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));border-top:2px solid oklch(0.2 0.02 60);border-left:2px solid oklch(0.2 0.02 60);">
+                <sc-for list="{{ gg.chars }}" as="c" hint-placeholder-count="20">
+                  <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:34px;border-right:2px solid oklch(0.2 0.02 60);border-bottom:2px solid oklch(0.2 0.02 60);font-family:{{ c.fam }};font-weight:{{ c.fw }};font-style:{{ c.fs }};" style-hover="background:oklch(0.88 0.17 95);">{{ c.ch }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+<div id="1b" style="display:flex;flex-direction:column;gap:16px;">
+  <div style="font:700 14px 'JetBrains Mono',monospace;color:#222;">1b · Đêm neon – thanh bên</div>
+  <div onDragOver="{{ overB }}" onDragLeave="{{ leave }}" onDrop="{{ drop }}" style="position:relative;width:1280px;min-height:1600px;background:oklch(0.17 0.02 280);color:oklch(0.96 0.01 280);font-family:'Space Grotesk',sans-serif;display:grid;grid-template-columns:320px minmax(0,1fr);box-sizing:border-box;">
+    <aside style="border-right:1px solid oklch(0.32 0.02 280);padding:36px 28px;display:flex;flex-direction:column;gap:28px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:56px;font-weight:700;letter-spacing:-2px;line-height:0.95;">Kho chữ<span style="color:oklch(0.88 0.2 130);">.</span></div>
+        <div style="font:400 13px 'JetBrains Mono',monospace;color:oklch(0.75 0.02 280);">{{ counts.all }} font · {{ counts.vn }} Việt Hóa</div>
+      </div>
+      <div onClick="{{ pickFonts }}" style="border:1.5px dashed oklch(0.88 0.2 130);border-radius:14px;padding:22px 18px;display:flex;flex-direction:column;gap:8px;cursor:pointer;" style-hover="background:oklch(0.88 0.2 130 / 0.08);">
+        <div style="font-weight:700;font-size:17px;color:oklch(0.88 0.2 130);">+ Thả font vào đây</div>
+        <div style="font-size:13px;line-height:1.5;color:oklch(0.8 0.02 280);">.ttf .otf .woff kèm ảnh preview cùng tên. Hoặc bấm để chọn file.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="font:700 11px 'JetBrains Mono',monospace;letter-spacing:1px;color:oklch(0.75 0.02 280);">CHỮ TEST</div>
+        <input value="{{ text }}" onChange="{{ onText }}" placeholder="Gõ gì đó…" style="background:oklch(0.22 0.02 280);border:1px solid oklch(0.32 0.02 280);border-radius:10px;color:inherit;padding:12px 14px;font-size:16px;outline:none;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <sc-for list="{{ samples }}" as="sm" hint-placeholder-count="4">
+            <sc-if value="{{ sm.active }}"><button onClick="{{ sm.pick }}" style="text-align:left;background:oklch(0.88 0.2 130);color:oklch(0.17 0.02 280);border:none;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;">{{ sm.t }}</button></sc-if>
+            <sc-if value="{{ sm.inactive }}"><button onClick="{{ sm.pick }}" style="text-align:left;background:transparent;color:oklch(0.85 0.02 280);border:1px solid oklch(0.32 0.02 280);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;">{{ sm.t }}</button></sc-if>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;font:400 12px 'JetBrains Mono',monospace;color:oklch(0.8 0.02 280);">
+        <label style="display:flex;flex-direction:column;gap:6px;">ĐỘ ĐẬM — {{ weight }}<input type="range" min="100" max="900" step="100" value="{{ weight }}" onChange="{{ onWeight }}" style="accent-color:oklch(0.88 0.2 130);"></label>
+        <label style="display:flex;flex-direction:column;gap:6px;">CỠ CHỮ — {{ size }}px<input type="range" min="16" max="96" value="{{ size }}" onChange="{{ onSize }}" style="accent-color:oklch(0.88 0.2 130);"></label>
+        <sc-if value="{{ italicOn }}"><button onClick="{{ toggleItalic }}" style="background:oklch(0.88 0.2 130);color:oklch(0.17 0.02 280);border:none;border-radius:8px;padding:10px;font-style:italic;font-weight:700;cursor:pointer;">Italic: bật</button></sc-if>
+        <sc-if value="{{ italicOff }}"><button onClick="{{ toggleItalic }}" style="background:transparent;color:oklch(0.85 0.02 280);border:1px solid oklch(0.32 0.02 280);border-radius:8px;padding:10px;font-style:italic;cursor:pointer;">Italic: tắt</button></sc-if>
+      </div>
+    </aside>
+    <main style="padding:36px;display:flex;flex-direction:column;gap:24px;">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div style="display:flex;gap:4px;background:oklch(0.22 0.02 280);border-radius:999px;padding:4px;">
+          <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+            <sc-if value="{{ tb.active }}"><button onClick="{{ tb.pick }}" style="white-space:nowrap;flex:none;background:oklch(0.88 0.2 130);color:oklch(0.17 0.02 280);border:none;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;cursor:pointer;">{{ tb.label }} <span style="font-family:'JetBrains Mono',monospace;">{{ tb.n }}</span></button></sc-if>
+            <sc-if value="{{ tb.inactive }}"><button onClick="{{ tb.pick }}" style="white-space:nowrap;flex:none;background:transparent;color:oklch(0.85 0.02 280);border:none;border-radius:999px;padding:9px 18px;font-size:14px;cursor:pointer;">{{ tb.label }} <span style="font-family:'JetBrains Mono',monospace;">{{ tb.n }}</span></button></sc-if>
+          </sc-for>
+        </div>
+        <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Tìm font…" style="margin-left:auto;background:oklch(0.22 0.02 280);border:1px solid oklch(0.32 0.02 280);border-radius:999px;color:inherit;padding:10px 16px;width:220px;outline:none;">
+      </div>
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:18px;color:oklch(0.8 0.02 280);padding:40px 0;">Không có font nào khớp.</div></sc-if>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;">
+        <sc-for list="{{ items }}" as="f" hint-placeholder-count="6">
+          <div onDragOver="{{ f.over }}" onDrop="{{ f.onDrop }}" onClick="{{ f.openB }}" style="background:oklch(0.22 0.02 280);border:1px solid oklch(0.32 0.02 280);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;" style-hover="border-color:oklch(0.88 0.2 130);">
+            <div style="aspect-ratio:16/10;overflow:hidden;">
+              <sc-if value="{{ f.hasImg }}" hint-placeholder-val="{{ false }}"><img src="{{ f.img }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></sc-if>
+              <sc-if value="{{ f.noImg }}"><div style="width:100%;height:100%;background:oklch(0.27 0.03 280);color:oklch(0.88 0.2 130);display:flex;align-items:center;justify-content:center;font-size:88px;font-family:{{ f.family }};">Aa</div></sc-if>
+            </div>
+            <div style="padding:18px;display:flex;flex-direction:column;gap:14px;flex:1;">
+              <div style="font-family:{{ f.family }};font-weight:{{ f.fw }};font-style:{{ f.fs }};font-size:{{ f.px }};line-height:1.15;overflow-wrap:anywhere;flex:1;">{{ f.txt }}</div>
+              <div style="display:flex;align-items:center;gap:10px;border-top:1px solid oklch(0.32 0.02 280);padding-top:12px;">
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;">
+                  <div style="font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ f.name }}</div>
+                  <div style="font:400 11px 'JetBrains Mono',monospace;color:oklch(0.75 0.02 280);">{{ f.tag }}</div>
+                </div>
+                <sc-if value="{{ f.vn }}"><span style="font:700 10px 'JetBrains Mono',monospace;color:oklch(0.88 0.2 130);border:1px solid oklch(0.88 0.2 130);border-radius:999px;padding:3px 8px;white-space:nowrap;">VIỆT HÓA</span></sc-if>
+                <a href="{{ f.dl }}" download="{{ f.dlName }}" target="{{ f.target }}" onClick="{{ stop }}" style="background:oklch(0.88 0.2 130);color:oklch(0.17 0.02 280);border-radius:999px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;">↓</a>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+    <sc-if value="{{ dragB }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:16px;border:3px dashed oklch(0.88 0.2 130);border-radius:24px;background:oklch(0.17 0.02 280 / 0.9);color:oklch(0.88 0.2 130);display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:700;pointer-events:none;">Thả font & ảnh vào đây</div></sc-if>
+    <sc-if value="{{ glyphB }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeGlyph }}" style="position:absolute;inset:0;background:oklch(0.1 0.02 280 / 0.8);display:flex;justify-content:flex-end;">
+        <div onClick="{{ stop }}" style="width:820px;background:oklch(0.2 0.02 280);border-left:1px solid oklch(0.32 0.02 280);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:40px;font-weight:700;letter-spacing:-1px;">{{ g.name }}</div>
+              <div style="font:400 12px 'JetBrains Mono',monospace;color:oklch(0.75 0.02 280);">{{ g.tag }} · {{ g.vnLabel }}</div>
+            </div>
+            <button onClick="{{ closeGlyph }}" style="background:transparent;color:inherit;border:1px solid oklch(0.32 0.02 280);border-radius:999px;width:40px;height:40px;cursor:pointer;">✕</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <a href="{{ g.dl }}" download="{{ g.dlName }}" target="{{ g.target }}" style="background:oklch(0.88 0.2 130);color:oklch(0.17 0.02 280);border-radius:999px;padding:10px 18px;font-weight:700;">Tải font ↓</a>
+            <button onClick="{{ g.toggleVn }}" style="background:transparent;color:inherit;border:1px solid oklch(0.32 0.02 280);border-radius:999px;padding:10px 18px;cursor:pointer;">{{ g.vnAction }}</button>
+            <button onClick="{{ g.pickImg }}" style="background:transparent;color:inherit;border:1px solid oklch(0.32 0.02 280);border-radius:999px;padding:10px 18px;cursor:pointer;">{{ g.imgAction }}</button>
+            <sc-if value="{{ g.canDelete }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.remove }}" style="background:transparent;color:oklch(0.75 0.15 25);border:1px solid oklch(0.32 0.02 280);border-radius:999px;padding:10px 18px;cursor:pointer;">Xóa</button></sc-if>
+          </div>
+          <div style="font-family:{{ g.family }};font-weight:{{ g.fw }};font-style:{{ g.fs }};font-size:60px;line-height:1.1;color:oklch(0.88 0.2 130);">{{ g.txt }}</div>
+          <sc-for list="{{ glyphGroups }}" as="gg" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="font:700 11px 'JetBrains Mono',monospace;letter-spacing:1px;color:oklch(0.75 0.02 280);">{{ gg.title }}</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:4px;">
+                <sc-for list="{{ gg.chars }}" as="c" hint-placeholder-count="20">
+                  <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:28px;background:oklch(0.24 0.02 280);border-radius:8px;font-family:{{ c.fam }};font-weight:{{ c.fw }};font-style:{{ c.fs }};" style-hover="background:oklch(0.88 0.2 130);color:oklch(0.17 0.02 280);">{{ c.ch }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+<div id="1c" style="display:flex;flex-direction:column;gap:16px;">
+  <div style="font:700 14px 'JetBrains Mono',monospace;color:#222;">1c · Cobalt – hồng, chữ test lớn</div>
+  <div onDragOver="{{ overC }}" onDragLeave="{{ leave }}" onDrop="{{ drop }}" style="position:relative;width:1280px;min-height:1600px;background:oklch(0.45 0.2 264);color:#fff;font-family:'Archivo',sans-serif;padding:48px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;">
+      <h1 style="margin:0;font-weight:900;font-size:200px;line-height:0.8;letter-spacing:-10px;">kho chữ<span style="color:oklch(0.8 0.14 350);">.</span></h1>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px;padding-top:12px;">
+        <button onClick="{{ pickFonts }}" style="background:oklch(0.8 0.14 350);color:oklch(0.25 0.12 264);border:none;border-radius:999px;padding:16px 26px;font-weight:800;font-size:17px;cursor:pointer;">Thêm font +</button>
+        <div style="font-size:14px;text-align:right;line-height:1.5;max-width:240px;">Hoặc kéo thả file font và ảnh preview vào trang.</div>
+      </div>
+    </div>
+    <div style="background:#fff;color:oklch(0.25 0.12 264);display:flex;flex-direction:column;">
+      <input value="{{ text }}" onChange="{{ onText }}" placeholder="Gõ chữ để test…" style="border:none;padding:24px 28px;font-size:44px;font-weight:800;color:oklch(0.25 0.12 264);outline:none;letter-spacing:-1px;">
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;padding:14px 28px;border-top:2px solid oklch(0.45 0.2 264);font-size:14px;font-weight:700;">
+        <sc-for list="{{ samples }}" as="sm" hint-placeholder-count="4">
+          <sc-if value="{{ sm.active }}"><button onClick="{{ sm.pick }}" style="background:oklch(0.45 0.2 264);color:#fff;border:none;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">{{ sm.t }}</button></sc-if>
+          <sc-if value="{{ sm.inactive }}"><button onClick="{{ sm.pick }}" style="background:transparent;color:oklch(0.25 0.12 264);border:none;padding:6px 0;font-size:13px;font-weight:700;cursor:pointer;text-decoration:underline;">{{ sm.t }}</button></sc-if>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:center;padding:14px 28px;border-top:2px solid oklch(0.45 0.2 264);font-size:13px;font-weight:800;">
+        <label style="display:flex;gap:10px;align-items:center;">Đậm {{ weight }}<input type="range" min="100" max="900" step="100" value="{{ weight }}" onChange="{{ onWeight }}" style="accent-color:oklch(0.45 0.2 264);width:150px;"></label>
+        <label style="display:flex;gap:10px;align-items:center;">Cỡ {{ size }}<input type="range" min="16" max="96" value="{{ size }}" onChange="{{ onSize }}" style="accent-color:oklch(0.45 0.2 264);width:150px;"></label>
+        <sc-if value="{{ italicOn }}"><button onClick="{{ toggleItalic }}" style="background:oklch(0.45 0.2 264);color:#fff;border:none;border-radius:999px;padding:6px 14px;font-style:italic;font-weight:800;cursor:pointer;">Italic</button></sc-if>
+        <sc-if value="{{ italicOff }}"><button onClick="{{ toggleItalic }}" style="background:transparent;color:oklch(0.25 0.12 264);border:2px solid oklch(0.45 0.2 264);border-radius:999px;padding:5px 14px;font-style:italic;font-weight:800;cursor:pointer;">Italic</button></sc-if>
+        <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Tìm font" style="margin-left:auto;border:2px solid oklch(0.45 0.2 264);border-radius:999px;padding:8px 14px;width:200px;outline:none;">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+        <sc-if value="{{ tb.active }}"><button onClick="{{ tb.pick }}" style="white-space:nowrap;flex:none;background:oklch(0.8 0.14 350);color:oklch(0.25 0.12 264);border:2px solid oklch(0.8 0.14 350);border-radius:999px;padding:10px 20px;font-weight:800;font-size:15px;cursor:pointer;">{{ tb.label }} · {{ tb.n }}</button></sc-if>
+        <sc-if value="{{ tb.inactive }}"><button onClick="{{ tb.pick }}" style="white-space:nowrap;flex:none;background:transparent;color:#fff;border:2px solid #fff;border-radius:999px;padding:10px 20px;font-weight:800;font-size:15px;cursor:pointer;">{{ tb.label }} · {{ tb.n }}</button></sc-if>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:24px;font-weight:800;padding:40px 0;">Không có font nào khớp.</div></sc-if>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:oklch(0.45 0.2 264);">
+      <sc-for list="{{ items }}" as="f" hint-placeholder-count="6">
+        <div onDragOver="{{ f.over }}" onDrop="{{ f.onDrop }}" style="background:#fff;color:oklch(0.25 0.12 264);display:grid;grid-template-columns:200px minmax(0,1fr);min-height:220px;">
+          <div onClick="{{ f.openC }}" style="overflow:hidden;cursor:pointer;">
+            <sc-if value="{{ f.hasImg }}" hint-placeholder-val="{{ false }}"><img src="{{ f.img }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></sc-if>
+            <sc-if value="{{ f.noImg }}"><div style="width:100%;height:100%;background:oklch(0.8 0.14 350);color:oklch(0.25 0.12 264);display:flex;align-items:center;justify-content:center;font-size:84px;font-family:{{ f.family }};">Aa</div></sc-if>
+          </div>
+          <div style="padding:22px 24px;display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;">
+              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ f.name }}</span>
+              <sc-if value="{{ f.vn }}"><span style="background:oklch(0.45 0.2 264);color:#fff;border-radius:999px;padding:3px 9px;font-size:11px;white-space:nowrap;">Việt Hóa</span></sc-if>
+              <sc-if value="{{ f.notVn }}"><span style="border:1.5px solid oklch(0.25 0.12 264);border-radius:999px;padding:2px 8px;font-size:11px;white-space:nowrap;">Chưa VH</span></sc-if>
+            </div>
+            <div style="font-family:{{ f.family }};font-weight:{{ f.fw }};font-style:{{ f.fs }};font-size:{{ f.px }};line-height:1.1;overflow-wrap:anywhere;flex:1;">{{ f.txt }}</div>
+            <div style="display:flex;gap:16px;align-items:center;font-size:13px;font-weight:800;">
+              <span style="color:oklch(0.45 0.05 264);font-weight:600;">{{ f.tag }}</span>
+              <button onClick="{{ f.openC }}" style="margin-left:auto;background:transparent;border:none;color:oklch(0.25 0.12 264);font-weight:800;cursor:pointer;text-decoration:underline;">Glyph</button>
+              <a href="{{ f.dl }}" download="{{ f.dlName }}" target="{{ f.target }}" style="background:oklch(0.25 0.12 264);color:#fff;border-radius:999px;padding:8px 16px;">Tải ↓</a>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ dragC }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:oklch(0.8 0.14 350 / 0.94);color:oklch(0.25 0.12 264);display:flex;align-items:center;justify-content:center;font-size:120px;font-weight:900;letter-spacing:-5px;pointer-events:none;">thả vào đây.</div></sc-if>
+    <sc-if value="{{ glyphC }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeGlyph }}" style="position:absolute;inset:0;background:oklch(0.25 0.12 264 / 0.85);padding:48px;box-sizing:border-box;">
+        <div onClick="{{ stop }}" style="background:#fff;color:oklch(0.25 0.12 264);padding:44px;display:flex;flex-direction:column;gap:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;">{{ g.name }}</div>
+              <div style="font-weight:700;font-size:14px;">{{ g.tag }} · {{ g.vnLabel }}</div>
+            </div>
+            <button onClick="{{ closeGlyph }}" style="background:oklch(0.45 0.2 264);color:#fff;border:none;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;">Đóng ✕</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;font-weight:800;">
+            <a href="{{ g.dl }}" download="{{ g.dlName }}" target="{{ g.target }}" style="background:oklch(0.8 0.14 350);color:oklch(0.25 0.12 264);border-radius:999px;padding:10px 18px;">Tải font ↓</a>
+            <button onClick="{{ g.toggleVn }}" style="background:transparent;color:inherit;border:2px solid oklch(0.45 0.2 264);border-radius:999px;padding:8px 18px;font-weight:800;cursor:pointer;">{{ g.vnAction }}</button>
+            <button onClick="{{ g.pickImg }}" style="background:transparent;color:inherit;border:2px solid oklch(0.45 0.2 264);border-radius:999px;padding:8px 18px;font-weight:800;cursor:pointer;">{{ g.imgAction }}</button>
+            <sc-if value="{{ g.canDelete }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.remove }}" style="background:transparent;color:inherit;border:2px solid oklch(0.45 0.2 264);border-radius:999px;padding:8px 18px;font-weight:800;cursor:pointer;">Xóa</button></sc-if>
+          </div>
+          <div style="font-family:{{ g.family }};font-weight:{{ g.fw }};font-style:{{ g.fs }};font-size:80px;line-height:1.05;background:oklch(0.45 0.2 264);color:#fff;padding:28px;">{{ g.txt }}</div>
+          <sc-for list="{{ glyphGroups }}" as="gg" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="font-weight:900;font-size:15px;">{{ gg.title }}</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:2px;background:oklch(0.9 0.03 264);">
+                <sc-for list="{{ gg.chars }}" as="c" hint-placeholder-count="20">
+                  <div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:32px;background:#fff;font-family:{{ c.fam }};font-weight:{{ c.fw }};font-style:{{ c.fs }};" style-hover="background:oklch(0.8 0.14 350);">{{ c.ch }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+</section>
+<input type="file" ref="{{ fontInput }}" multiple="multiple" accept=".ttf,.otf,.woff,.woff2,image/*" onChange="{{ onFontInput }}" style="display:none;">
+<input type="file" ref="{{ imgInput }}" accept="image/*" onChange="{{ onImgInput }}" style="display:none;">
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div style="position:fixed;left:50%;bottom:32px;transform:translateX(-50%);background:#111;color:#fff;padding:12px 20px;border-radius:999px;font:600 14px 'Be Vietnam Pro',sans-serif;z-index:10;">{{ toast }}</div></sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showDemo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const DEMO = [['Be Vietnam Pro',true],['Lexend',true],['Bungee',true],['Pacifico',true],['Lobster',true],['Anton',true],['Playfair Display',true],['Dancing Script',true],['Baloo 2',true],['Patrick Hand',true],['Montserrat',true],['Bebas Neue',false],['Abril Fatface',false],['Monoton',false],['Righteous',false],['Shrikhand',false]];
+const SAMPLES = ['Trăm năm trong cõi người ta','Đường vô xứ Huế quanh quanh','Phở bò tái nạm gầu gân','ĂÂĐÊÔƠƯ ắằẳẵặ ếềểễệ ợựỵ'];
+const GROUPS = [
+  ['Chữ hoa','ABCDEFGHIJKLMNOPQRSTUVWXYZ'],
+  ['Chữ thường','abcdefghijklmnopqrstuvwxyz'],
+  ['Tiếng Việt','ĂÂĐÊÔƠƯăâđêôơưàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵẮẰẲẴẶẤẦẨẪẬẾỀỂỄỆỐỒỔỖỘỚỜỞỠỢỨỪỬỮỰ'],
+  ['Số & dấu','0123456789.,:;!?&@#%()“”‘’-–—/']
+];
+const FONT_RE = /\.(ttf|otf|woff2?)$/i;
+const key = n => n.replace(/\.[^.]+$/,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const pretty = n => n.replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').trim();
+const openDb = () => new Promise((res,rej)=>{const r=indexedDB.open('khochu',1);r.onupgradeneeded=()=>r.result.createObjectStore('fonts',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+async function tx(mode, fn){const db=await openDb();return new Promise((res,rej)=>{const t=db.transaction('fonts',mode);const out=fn(t.objectStore('fonts'));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}
+function detectVN(family){
+  const c=document.createElement('canvas').getContext('2d');let miss=0;
+  for(const ch of 'ăâđêôơưắằẳẵặấầẩẫậếềểễệốồổỗộớờởỡợứừửữựỳýỷỹỵ'){
+    let m=0;
+    for(const fb of ['monospace','serif']){c.font=`40px ${family}, ${fb}`;const a=c.measureText(ch).width;c.font=`40px ${fb}`;if(Math.abs(a-c.measureText(ch).width)<0.01)m++;}
+    if(m===2)miss++;
+  }
+  return miss<=2;
+}
+class Component extends DCLogic {
+  state = {
+    fonts: DEMO.map(([n,vn])=>({id:'demo:'+n,name:n,family:`'${n}'`,vn,demo:true,img:null,fileUrl:'https://fonts.google.com/specimen/'+n.replace(/ /g,'+'),fileName:'',ext:'Google Fonts'})),
+    filter:'all', q:'', text:'', sample:0, weight:400, italic:false, size:40, drag:null, glyph:null, toast:''
+  };
+  fontInput = React.createRef(); imgInput = React.createRef(); blobs = {};
+  async componentDidMount(){
+    try { const recs = await tx('readonly', s=>s.getAll()); for (const r of (recs||[]).sort((a,b)=>(b.added||0)-(a.added||0))) await this.hydrate(r); }
+    catch(e){ console.warn('IDB', e); }
+  }
+  async hydrate(r){
+    if (r.id.startsWith('demo:')) {
+      this.blobs[r.id] = {font:null,img:r.imgBlob||null};
+      this.setState(s=>({fonts:s.fonts.map(f=>f.id===r.id?{...f,vn:r.vn,img:r.imgBlob?URL.createObjectURL(r.imgBlob):null}:f)}));
+      return;
+    }
+    try { const f = await this.loadFont(r); this.setState(s=>({fonts:[...s.fonts.filter(x=>x.demo===false),f,...s.fonts.filter(x=>x.demo)]})); } catch(e){ console.warn(e); }
+  }
+  async loadFont(r){
+    const family='uf_'+r.id;
+    const ff=new FontFace(family, await r.fontBlob.arrayBuffer()); await ff.load(); document.fonts.add(ff);
+    this.blobs[r.id]={font:r.fontBlob,img:r.imgBlob||null,added:r.added||Date.now()};
+    const m=r.fileName.match(/\.([^.]+)$/);
+    return {id:r.id,name:r.name,family:`'${family}'`,vn:r.vn,demo:false,img:r.imgBlob?URL.createObjectURL(r.imgBlob):null,fileUrl:URL.createObjectURL(r.fontBlob),fileName:r.fileName,ext:m?m[1].toUpperCase():'FONT'};
+  }
+  save(f){
+    const b=this.blobs[f.id]||{};
+    tx('readwrite', s=>s.put({id:f.id,name:f.name,vn:f.vn,fileName:f.fileName,fontBlob:b.font||null,imgBlob:b.img||null,added:b.added||Date.now()})).catch(e=>console.warn(e));
+  }
+  flash(t){ this.setState({toast:t}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:''}),2600); }
+  update(id, patch){
+    this.setState(s=>({fonts:s.fonts.map(f=>f.id===id?{...f,...patch}:f)}), ()=>{const f=this.state.fonts.find(x=>x.id===id); if(f) this.save(f);});
+  }
+  setImg(id, file){
+    this.blobs[id]={...(this.blobs[id]||{font:null}),img:file};
+    this.update(id,{img:URL.createObjectURL(file)});
+    this.flash('Đã gắn ảnh preview');
+  }
+  async addFiles(list, targetId){
+    const arr=[...list]; const fonts=arr.filter(f=>FONT_RE.test(f.name)); const imgs=arr.filter(f=>f.type.startsWith('image/'));
+    if (targetId && imgs.length && !fonts.length) { this.setImg(targetId, imgs[0]); return; }
+    if (!fonts.length) { if (imgs.length) this.flash('Thả ảnh lên đúng thẻ font để gắn ảnh'); return; }
+    const created=[];
+    for (const file of fonts) {
+      const id='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      try { const f=await this.loadFont({id,name:pretty(file.name),fontBlob:file,fileName:file.name,added:Date.now()}); f.vn=detectVN(f.family); created.push(f); }
+      catch(e){ this.flash('Không đọc được '+file.name); }
+    }
+    const used=new Set();
+    for (const f of created) {
+      const base=key(f.fileName);
+      const m=imgs.find(i=>{if(used.has(i))return false;const k=key(i.name);return k===base||k.includes(base)||base.includes(k);});
+      if (m) { used.add(m); this.blobs[f.id].img=m; f.img=URL.createObjectURL(m); }
+    }
+    const rest=imgs.filter(i=>!used.has(i));
+    if (created.length===1 && !created[0].img && rest.length) { this.blobs[created[0].id].img=rest[0]; created[0].img=URL.createObjectURL(rest[0]); }
+    this.setState(s=>({fonts:[...created,...s.fonts]}));
+    created.forEach(f=>this.save(f));
+    if (created.length) this.flash(`Đã thêm ${created.length} font · ${created.filter(f=>f.vn).length} Việt Hóa`);
+  }
+  remove(id){
+    const f=this.state.fonts.find(x=>x.id===id); if(!f||f.demo) return;
+    this.setState(s=>({fonts:s.fonts.filter(x=>x.id!==id),glyph:null}));
+    tx('readwrite', s=>s.delete(id)).catch(()=>{});
+  }
+  renderVals(){
+    const s=this.state; const showDemo=this.props.showDemo ?? true;
+    const all=s.fonts.filter(f=>showDemo||!f.demo);
+    const txt=s.text||SAMPLES[s.sample]; const q=s.q.trim().toLowerCase();
+    const fw=s.weight, fs=s.italic?'italic':'normal', px=s.size+'px';
+    const vnN=all.filter(f=>f.vn).length;
+    const counts={all:all.length,vn:vnN};
+    const list=all.filter(f=>(s.filter==='all'||(s.filter==='vn')===f.vn)&&(!q||f.name.toLowerCase().includes(q)));
+    const pickImg=id=>()=>{this.pendingImg=id;this.imgInput.current&&this.imgInput.current.click();};
+    const items=list.map(f=>({...f,txt,fw,fs,px,hasImg:!!f.img,noImg:!f.img,notVn:!f.vn,
+      tag:f.demo?'Google Fonts':f.ext,dl:f.fileUrl,dlName:f.demo?undefined:f.fileName,target:f.demo?'_blank':undefined,
+      openA:()=>this.setState({glyph:{opt:'a',id:f.id}}),openB:()=>this.setState({glyph:{opt:'b',id:f.id}}),openC:()=>this.setState({glyph:{opt:'c',id:f.id}}),
+      over:e=>{e.preventDefault();},
+      onDrop:e=>{e.preventDefault();e.stopPropagation();this.setState({drag:null});this.addFiles(e.dataTransfer.files,f.id);}
+    }));
+    const gf=s.glyph&&s.fonts.find(f=>f.id===s.glyph.id);
+    const g=gf?{...gf,txt,fw,fs,tag:gf.demo?'Google Fonts':gf.ext,dl:gf.fileUrl,dlName:gf.demo?undefined:gf.fileName,target:gf.demo?'_blank':undefined,
+      vnLabel:gf.vn?'Có Việt Hóa':'Chưa Việt Hóa',vnAction:gf.vn?'Bỏ đánh dấu Việt Hóa':'Đánh dấu Việt Hóa',imgAction:gf.img?'Đổi ảnh preview':'Thêm ảnh preview',
+      canDelete:!gf.demo,toggleVn:()=>this.update(gf.id,{vn:!gf.vn}),pickImg:pickImg(gf.id),remove:()=>this.remove(gf.id)}:{};
+    const over=opt=>e=>{e.preventDefault();if(s.drag!==opt)this.setState({drag:opt});};
+    return {
+      counts,text:s.text,q:s.q,weight:s.weight,size:s.size,italicOn:s.italic,italicOff:!s.italic,
+      samples:SAMPLES.map((t,i)=>{const a=!s.text&&i===s.sample;return {t,active:a,inactive:!a,pick:()=>this.setState({sample:i,text:''})};}),
+      tabs:[['all','Tất cả',all.length],['vn','Việt Hóa',vnN],['no','Chưa Việt Hóa',all.length-vnN]].map(([k,label,n])=>({label,n,active:s.filter===k,inactive:s.filter!==k,pick:()=>this.setState({filter:k})})),
+      items,isEmpty:!items.length,g,
+      glyphA:!!gf&&s.glyph.opt==='a',glyphB:!!gf&&s.glyph.opt==='b',glyphC:!!gf&&s.glyph.opt==='c',
+      glyphGroups:gf?GROUPS.map(([title,str])=>({title,chars:[...str].map(ch=>({ch,fam:gf.family,fw,fs}))})):[],
+      dragA:s.drag==='a',dragB:s.drag==='b',dragC:s.drag==='c',
+      overA:over('a'),overB:over('b'),overC:over('c'),
+      leave:e=>{if(!e.currentTarget.contains(e.relatedTarget))this.setState({drag:null});},
+      drop:e=>{e.preventDefault();this.setState({drag:null});this.addFiles(e.dataTransfer.files);},
+      onText:e=>this.setState({text:e.target.value}),onQ:e=>this.setState({q:e.target.value}),
+      onWeight:e=>this.setState({weight:+e.target.value}),onSize:e=>this.setState({size:+e.target.value}),
+      toggleItalic:()=>this.setState({italic:!s.italic}),
+      closeGlyph:()=>this.setState({glyph:null}),stop:e=>e.stopPropagation(),
+      pickFonts:()=>this.fontInput.current&&this.fontInput.current.click(),
+      fontInput:this.fontInput,imgInput:this.imgInput,
+      onFontInput:e=>{this.addFiles(e.target.files);e.target.value='';},
+      onImgInput:e=>{const file=e.target.files[0];if(file&&this.pendingImg)this.setImg(this.pendingImg,file);e.target.value='';},
+      hasToast:!!s.toast,toast:s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
