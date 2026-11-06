@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
-import type { Family, FontPick, Pin, Variant } from '../types';
+import type { Family, Filter, FontPick, Pin, Variant } from '../types';
+import { FilterPills, matchFilter } from './FilterPills';
 import { PRESETS } from '../lib/constants';
 import { defIdx, key } from '../lib/font';
 
@@ -20,6 +21,10 @@ interface Props {
   onHQ: (v: string) => void;
   bq: string;
   onBQ: (v: string) => void;
+  hFilter: Filter;
+  onHFilter: (f: Filter) => void;
+  bFilter: Filter;
+  onBFilter: (f: Filter) => void;
 }
 
 const vOf = (f: Family, vi: number | null) => f.variants[vi != null && f.variants[vi] ? vi : defIdx(f.variants)];
@@ -66,13 +71,13 @@ export function MixView(p: Props) {
 
   const hqq = p.hq.trim().toLowerCase();
   const hRows: PickRow[] = pool
-    .filter(f => !hqq || f.name.toLowerCase().includes(hqq))
+    .filter(f => matchFilter(p.hFilter, f.vn) && (!hqq || f.name.toLowerCase().includes(hqq)))
     .map(f => ({ f, v: vOf(f, f === hf ? p.mixH.vi : null), active: f === hf, tag: f.variants.length > 1 ? f.variants.length + ' kiểu' : '' }));
 
   const bqq = p.bq.trim().toLowerCase();
   const bOrder = [...presetFonts, ...pool.filter(f => !presetFonts.includes(f)).sort((a, b) => a.name.localeCompare(b.name))];
   const bRows: PickRow[] = bOrder
-    .filter(f => !bqq || f.name.toLowerCase().includes(bqq))
+    .filter(f => matchFilter(p.bFilter, f.vn) && (!bqq || f.name.toLowerCase().includes(bqq)))
     .map(f => ({ f, v: vOf(f, f === bf ? p.mixB.vi : null), active: f === bf, tag: presetFonts.includes(f) ? 'hay dùng' : '' }));
 
   const hvi = hf.variants.indexOf(hv), bvi = bf.variants.indexOf(bv);
@@ -97,6 +102,8 @@ export function MixView(p: Props) {
               <div className="eyebrow">HEADING</div>
               <input className="field field-sm" value={p.hq} onChange={e => p.onHQ(e.target.value)} placeholder="Tìm…" />
             </div>
+            <FilterPills size="sm" value={p.hFilter} onChange={p.onHFilter} />
+            {!hRows.length && <div className="pick-empty">Không có font nào khớp.</div>}
             <PickList rows={hRows} kind="h" txt={f => p.hText || f.name} onPick={f => p.setMixH({ id: f.id, vi: null })} />
           </div>
           <div className="panel">
@@ -111,6 +118,8 @@ export function MixView(p: Props) {
                 ))}
               </div>
             )}
+            <FilterPills size="sm" value={p.bFilter} onChange={p.onBFilter} />
+            {!bRows.length && <div className="pick-empty">Không có font nào khớp.</div>}
             <PickList rows={bRows} kind="b" txt={() => p.bText} onPick={f => p.setMixB({ id: f.id, vi: null })} />
           </div>
         </div>

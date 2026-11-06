@@ -1,24 +1,31 @@
-import { useState } from 'react';
-import type { Family } from '../types';
+import type { Family, Filter } from '../types';
+import { FilterPills } from './FilterPills';
 import type { DownloadProps } from '../App';
 import { MAX_CHIPS } from '../lib/constants';
 
 interface Props {
   fonts: Family[];
-  txt: string;
+  txtFor: (f: Family) => string;
   selOf: (f: Family) => number;
   onSel: (id: string, i: number) => void;
   onOpen: (id: string) => void;
   onDropOn: (id: string, files: FileList) => void;
   dlProps: (f: Family) => DownloadProps;
   onRemove: (id: string) => void;
+  q: string;
+  onQ: (v: string) => void;
+  filter: Filter;
+  onFilter: (f: Filter) => void;
+  counts: Record<Filter, number>;
 }
 
-export function Library({ fonts, txt, selOf, onSel, onOpen, onDropOn, dlProps, onRemove }: Props) {
-  // Card whose delete button was pressed once and now asks for confirmation.
-  const [armed, setArmed] = useState<string | null>(null);
+export function Library({ fonts, txtFor, selOf, onSel, onOpen, onDropOn, dlProps, onRemove, q, onQ, filter, onFilter, counts }: Props) {
   return (
     <div className="lib">
+      <div className="lib-toolbar">
+        <input id="font-search" className="field lib-search" type="search" value={q} onChange={e => onQ(e.target.value)} placeholder="Tìm font…" />
+        <FilterPills value={filter} onChange={onFilter} counts={counts} />
+      </div>
       {!fonts.length && <div className="empty">Không có font nào khớp.</div>}
       <div className="lib-grid">
         {fonts.map(f => {
@@ -33,26 +40,18 @@ export function Library({ fonts, txt, selOf, onSel, onOpen, onDropOn, dlProps, o
               key={f.id}
               className="card"
               onClick={() => onOpen(f.id)}
-              onMouseLeave={() => { if (armed === f.id) setArmed(null); }}
               onDragOver={e => e.preventDefault()}
               onDrop={e => { e.preventDefault(); e.stopPropagation(); onDropOn(f.id, e.dataTransfer.files); }}
             >
               <div className="card-media">
-                <button
-                  className={'card-del' + (armed === f.id ? ' is-armed' : '')}
-                  title={armed === f.id ? 'Bấm lần nữa để xóa' : 'Xóa font'}
-                  aria-label={'Xóa ' + f.name}
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (armed === f.id) { setArmed(null); onRemove(f.id); } else setArmed(f.id);
-                  }}
-                >{armed === f.id ? 'Xóa?' : '✕'}</button>
+                <button className="card-del" title="Xóa font" aria-label={'Xóa ' + f.name}
+                  onClick={e => { e.stopPropagation(); onRemove(f.id); }}>✕</button>
                 {f.img
                   ? <div className="card-img" style={{ backgroundImage: `url(${f.img})` }} />
                   : <div className="card-aa" style={fontStyle}>Aa</div>}
               </div>
               <div className="card-body">
-                <div className="card-sample" style={fontStyle}>{txt}</div>
+                <div className="card-sample" style={fontStyle}>{txtFor(f)}</div>
                 <div className="chips">
                   {chips.map(c => (
                     <button key={c.i} className={'chip' + (c.i === si ? ' is-active' : '')}
@@ -63,7 +62,9 @@ export function Library({ fonts, txt, selOf, onSel, onOpen, onDropOn, dlProps, o
                 <div className="card-foot">
                   <div className="card-meta">
                     <div className="card-name">{f.name}</div>
-                    <div className="mono-meta">{f.variants.length} kiểu · {f.demo ? 'Google Fonts' : 'Đã tải lên'}</div>
+                    <div className="mono-meta">{f.variants.length} kiểu · {f.demo ? 'Google Fonts' : 'Đã tải lên'}
+                      {f.source && <> · <a className="src-link" href={f.source} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>nguồn ↗</a></>}
+                    </div>
                   </div>
                   {f.vn && <span className="vn-badge">VIỆT HÓA</span>}
                   <a className="dl-round" href={dl.href} download={dl.download} target={dl.target}

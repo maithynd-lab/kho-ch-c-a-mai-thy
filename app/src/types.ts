@@ -10,6 +10,8 @@ export interface Variant {
   fileUrl: string | null;
   fileName: string;
   ext: string;
+  /** Font file contains Vietnamese letters (auto-detected). */
+  vn?: boolean;
 }
 
 export interface Family {
@@ -19,6 +21,10 @@ export interface Family {
   demo: boolean;
   img: string | null;
   link?: string;
+  /** Link the user pasted to where the font came from. */
+  source?: string;
+  /** When the font was moved to Recently deleted (ms). -1 = permanently removed demo font. */
+  deletedAt?: number;
   variants: Variant[];
 }
 
@@ -36,4 +42,4 @@ export interface Pin {
 }
 
 export type Filter = 'all' | 'vn' | 'no';
-export type View = 'lib' | 'mix';
+export type View = 'lib' | 'mix' | 'trash';

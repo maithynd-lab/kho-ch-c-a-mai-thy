@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { Family } from '../types';
 import type { DownloadProps } from '../App';
 import { GROUPS } from '../lib/constants';
@@ -10,12 +11,32 @@ interface Props {
   onClose: () => void;
   onSel: (i: number) => void;
   onMix: () => void;
-  onToggleVn: () => void;
   onPickImg: () => void;
   onRemove: () => void;
+  onSource: (url: string) => void;
 }
 
-export function GlyphPanel({ font: f, si, txt, dl, onClose, onSel, onMix, onToggleVn, onPickImg, onRemove }: Props) {
+/** Accept pasted links with or without a scheme; reject anything that isn't http(s). */
+const normalizeUrl = (raw: string) => {
+  const t = raw.trim();
+  if (!t) return '';
+  try {
+    const u = new URL(/^[a-z][a-z0-9+.-]*:/i.test(t) ? t : 'https://' + t);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null;
+  } catch { return null; }
+};
+
+export function GlyphPanel({ font: f, si, txt, dl, onClose, onSel, onMix, onPickImg, onRemove, onSource }: Props) {
+  const [draft, setDraft] = useState(f.source || '');
+  const [bad, setBad] = useState(false);
+  useEffect(() => { setDraft(f.source || ''); setBad(false); }, [f.id, f.source]);
+  const commit = () => {
+    const url = normalizeUrl(draft);
+    if (url === null) { setBad(true); return; }
+    setBad(false);
+    setDraft(url);
+    if (url !== (f.source || '')) onSource(url);
+  };
   const cv = f.variants[si];
   const cvCss = { fontFamily: cv.fam, fontWeight: cv.fw, fontStyle: cv.fs };
   return (
@@ -35,9 +56,25 @@ export function GlyphPanel({ font: f, si, txt, dl, onClose, onSel, onMix, onTogg
           <a className="btn-accent" href={dl.href} download={dl.download} target={dl.target}
             rel={dl.target ? 'noopener noreferrer' : undefined} onClick={dl.onClick}>{dl.label}</a>
           <button className="btn-outline-accent" onClick={onMix}>Mix với font text →</button>
-          <button className="btn-outline" onClick={onToggleVn}>{f.vn ? 'Bỏ đánh dấu Việt Hóa' : 'Đánh dấu Việt Hóa'}</button>
           <button className="btn-outline" onClick={onPickImg}>{f.img ? 'Đổi ảnh preview' : 'Thêm ảnh preview'}</button>
           <button className="btn-outline btn-danger" onClick={onRemove}>Xóa font</button>
+        </div>
+
+        <div className="glyph-section">
+          <label className="eyebrow" htmlFor="font-source">LINK NGUỒN FONT</label>
+          <div className="source-row">
+            <input
+              id="font-source" className={'field source-input' + (bad ? ' is-bad' : '')} type="url" inputMode="url"
+              placeholder="Dán link trang bạn tải font này…" value={draft}
+              onChange={e => { setDraft(e.target.value); setBad(false); }}
+              onBlur={commit}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(); (e.target as HTMLInputElement).blur(); } }}
+            />
+            {f.source && !bad && draft === f.source && (
+              <a className="btn-outline-accent btn-sm source-open" href={f.source} target="_blank" rel="noopener noreferrer">Mở link ↗</a>
+            )}
+          </div>
+          {bad && <div className="source-err">Link chưa đúng. Hãy dán link bắt đầu bằng https://</div>}
         </div>
 
         <div className="glyph-section">

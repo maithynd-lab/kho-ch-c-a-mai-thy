@@ -15,6 +15,8 @@ export interface FamilyRecord {
   vn: boolean;
   imgBlob: Blob | null;
   added: number;
+  source?: string;
+  deletedAt?: number;
   variants: StoredVariant[];
 }
 

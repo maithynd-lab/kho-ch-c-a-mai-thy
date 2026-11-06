@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import type { Family, Filter, FontPick, Pin, Variant, View } from './types';
-import { buildDemoFamilies, DEFAULT_B_TEXT, DEFAULT_H_TEXT, SAMPLES, SHOW_DEMO } from './lib/constants';
-import { defIdx, detectVN, FONT_RE, inspect, key, sortV, uid } from './lib/font';
+import { buildDemoFamilies, DEFAULT_B_TEXT, DEFAULT_H_TEXT, SAMPLES, SHOW_DEMO, TRASH_DAYS, TRASH_MS } from './lib/constants';
+import { defIdx, detectVN, fileHasVN, FONT_RE, inspect, key, sortV, uid } from './lib/font';
 import { clearLegacy, deleteFamily, getAllFamilies, getLegacy, loadHiddenDemo, loadPins, putFamily, storeHiddenDemo, storePins, type FamilyRecord } from './lib/db';
 import { Sidebar } from './components/Sidebar';
 import { Library } from './components/Library';
 import { MixView } from './components/MixView';
 import { GlyphPanel } from './components/GlyphPanel';
+import { ConfirmDialog } from './components/ConfirmDialog';
+import { Trash } from './components/Trash';
 
 type VariantSeed = Pick<Variant, 'id' | 'label' | 'weight' | 'italic' | 'fileName'>;
 
@@ -24,7 +26,8 @@ export default function App() {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
   const [text, setText] = useState('');
-  const [sample, setSample] = useState(0);
+  const [sample, setSample] = useState<number | null>(null);
+  const [confirm, setConfirm] = useState<{ kind: 'trash' | 'purge' | 'purgeAll'; id?: string } | null>(null);
   const [drag, setDrag] = useState(false);
   const [glyph, setGlyph] = useState<string | null>(null);
   const [sel, setSel] = useState<Record<string, number>>({});
@@ -37,7 +40,8 @@ export default function App() {
   const [bText, setBText] = useState(DEFAULT_B_TEXT);
   const [hq, setHQ] = useState('');
   const [bq, setBQ] = useState('');
-  const [hiddenDemo, setHiddenDemo] = useState<string[]>(loadHiddenDemo);
+  const [hFilter, setHFilter] = useState<Filter>('all');
+  const [bFilter, setBFilter] = useState<Filter>('all');
 
   const fontsRef = useRef(fonts);
   fontsRef.current = fonts;
@@ -63,6 +67,8 @@ export default function App() {
       vn: f.vn,
       imgBlob: imgs.current[f.id] || null,
       added: added.current[f.id] || Date.now(),
+      source: f.source || '',
+      deletedAt: f.deletedAt || 0,
       variants: f.demo
         ? []
         : f.variants.map(v => ({ id: v.id, label: v.label, weight: v.weight, italic: v.italic, fileName: v.fileName, blob: vblobs.current[v.id] })),
@@ -72,19 +78,22 @@ export default function App() {
 
   const loadVariant = async (v: VariantSeed, blob: Blob): Promise<Variant> => {
     const css = 'uv_' + v.id;
-    const ff = new FontFace(css, await blob.arrayBuffer());
+    const buf = await blob.arrayBuffer();
+    const ff = new FontFace(css, buf.slice(0));
     await ff.load();
     document.fonts.add(ff);
     vblobs.current[v.id] = blob;
     const m = v.fileName.match(/\.([^.]+)$/);
-    return { ...v, fam: `'${css}'`, fw: 'normal', fs: 'normal', fileUrl: URL.createObjectURL(blob), ext: m ? m[1].toUpperCase() : 'FONT' };
+    // Việt Hóa is read from the file's character map; WOFF2 falls back to a render check.
+    const vn = (await fileHasVN(buf)) ?? detectVN(`'${css}'`);
+    return { ...v, fam: `'${css}'`, fw: 'normal', fs: 'normal', fileUrl: URL.createObjectURL(blob), ext: m ? m[1].toUpperCase() : 'FONT', vn };
   };
 
   const hydrate = async (r: FamilyRecord) => {
     if (r.id.startsWith('demo:')) {
       if (r.imgBlob) imgs.current[r.id] = r.imgBlob;
       const img = r.imgBlob ? URL.createObjectURL(r.imgBlob) : null;
-      setFonts(fs => fs.map(f => (f.id === r.id ? { ...f, vn: r.vn, img } : f)));
+      setFonts(fs => fs.map(f => (f.id === r.id ? { ...f, img, source: r.source || '', deletedAt: r.deletedAt || 0 } : f)));
       return;
     }
     const vs: Variant[] = [];
@@ -96,7 +105,7 @@ export default function App() {
     if (!vs.length) return;
     if (r.imgBlob) imgs.current[r.id] = r.imgBlob;
     added.current[r.id] = r.added;
-    const f: Family = { id: r.id, name: r.name, vn: r.vn, demo: false, img: r.imgBlob ? URL.createObjectURL(r.imgBlob) : null, variants: sortV(vs) };
+    const f: Family = { id: r.id, name: r.name, vn: vs.some(v => v.vn), demo: false, img: r.imgBlob ? URL.createObjectURL(r.imgBlob) : null, source: r.source || '', deletedAt: r.deletedAt || 0, variants: sortV(vs) };
     setFonts(fs => [...fs.filter(x => !x.demo && x.id !== f.id), f, ...fs.filter(x => x.demo)]);
   };
 
@@ -161,7 +170,7 @@ export default function App() {
       const fam = fams.find(f => touched.has(f.id));
       if (fam && !fam.img) { imgs.current[fam.id] = rest[0]; fam.img = URL.createObjectURL(rest[0]); }
     }
-    for (const fam of fams) if (created.has(fam.id)) fam.vn = detectVN(fam.variants[defIdx(fam.variants)].fam);
+    for (const fam of fams) if (touched.has(fam.id)) fam.vn = fam.variants.some(v => v.vn);
 
     // Keep any uploaded family that landed in state after our snapshot (e.g. during boot).
     const ids = new Set(fams.map(f => f.id));
@@ -170,21 +179,39 @@ export default function App() {
     if (!quiet && nFiles) flash(`Đã thêm ${nFiles} file vào ${touched.size} font`);
   };
 
-  const remove = (id: string) => {
+  /** Move a font to "Đã xóa gần đây". */
+  const trash = (id: string) => {
     const f = fontsRef.current.find(x => x.id === id);
     if (!f) return;
     setGlyph(null);
-    if (f.demo) {
-      // Demo fonts live in code, so "delete" hides them; they can be restored.
-      setHiddenDemo(h => { const next = [...h, id]; storeHiddenDemo(next); return next; });
-    } else {
-      setFonts(fs => fs.filter(x => x.id !== id));
-      deleteFamily(id).catch(() => {});
-    }
-    flash('Đã xóa ' + f.name);
+    update(id, { deletedAt: Date.now() });
+    flash(`Đã chuyển ${f.name} vào Đã xóa gần đây`);
   };
 
-  const restoreDemo = () => { setHiddenDemo([]); storeHiddenDemo([]); flash('Đã khôi phục font mẫu'); };
+  const restore = (id: string) => {
+    const f = fontsRef.current.find(x => x.id === id);
+    if (!f) return;
+    update(id, { deletedAt: 0 });
+    flash('Đã khôi phục ' + f.name);
+  };
+
+  /** Remove for good. Demo fonts live in code, so they are marked as permanently hidden instead. */
+  const purge = (id: string) => {
+    const f = fontsRef.current.find(x => x.id === id);
+    if (!f) return;
+    if (f.demo) update(id, { deletedAt: -1 });
+    else {
+      setFonts(fs => fs.filter(x => x.id !== id));
+      deleteFamily(id).catch(() => {});
+      f.variants.forEach(v => { if (v.fileUrl) URL.revokeObjectURL(v.fileUrl); delete vblobs.current[v.id]; });
+      delete imgs.current[id];
+    }
+  };
+
+  const purgeExpired = () => {
+    const now = Date.now();
+    fontsRef.current.filter(f => (f.deletedAt || 0) > 0 && now - (f.deletedAt as number) >= TRASH_MS).forEach(f => purge(f.id));
+  };
 
   const downloadAll = (f: Family) => {
     f.variants.forEach((v, i) =>
@@ -210,6 +237,11 @@ export default function App() {
         const recs = await getAllFamilies();
         recs.sort((a, b) => (b.added || 0) - (a.added || 0));
         for (const r of recs) await hydrate(r);
+        await new Promise(r => setTimeout(r, 0)); // let state settle before patching
+        // Demo fonts hidden by the previous version move into Recently deleted.
+        const hidden = loadHiddenDemo();
+        if (hidden.length) { hidden.forEach(id => update(id, { deletedAt: Date.now() })); storeHiddenDemo([]); }
+        purgeExpired();
         const old = await getLegacy();
         if (old && old.length) {
           await addFiles(old.filter(r => r.fontBlob).map(r => new File([r.fontBlob as Blob], r.fileName)), undefined, true);
@@ -223,15 +255,26 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!glyph) return;
+    if (!glyph || confirm) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setGlyph(null); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [glyph]);
+  }, [glyph, confirm]);
+
+  // Long-open tabs: clear expired fonts every hour.
+  useEffect(() => {
+    const t = window.setInterval(purgeExpired, 60 * 60 * 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ---------- derived ----------
-  const all = fonts.filter(f => !f.demo || (SHOW_DEMO && !hiddenDemo.includes(f.id)));
-  const txt = text || SAMPLES[sample];
+  const all = fonts.filter(f => !f.deletedAt && (SHOW_DEMO || !f.demo));
+  const trashed = fonts
+    .filter(f => (f.deletedAt || 0) > 0 && (SHOW_DEMO || !f.demo))
+    .sort((a, b) => (b.deletedAt as number) - (a.deletedAt as number));
+  // Without typed text or a chosen sample, each font previews its own name.
+  const txtFor = (f: Family) => text || (sample != null ? SAMPLES[sample] : f.name);
   const qq = q.trim().toLowerCase();
   const vnN = all.filter(f => f.vn).length;
   const counts = { all: all.length, vn: vnN, files: all.filter(f => !f.demo).reduce((n, f) => n + f.variants.length, 0) };
@@ -255,6 +298,7 @@ export default function App() {
   };
 
   const gf = glyph ? fonts.find(f => f.id === glyph) : undefined;
+  const cFont = confirm?.id ? fonts.find(f => f.id === confirm.id) : undefined;
 
   const onRootDragOver = (e: DragEvent) => { e.preventDefault(); if (!drag) setDrag(true); };
   const onRootDragLeave = (e: DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDrag(false); };
@@ -264,17 +308,15 @@ export default function App() {
   return (
     <>
       <div className="app" onDragOver={onRootDragOver} onDragLeave={onRootDragLeave} onDrop={onRootDrop}>
-        {view === 'lib' && (
+        {view !== 'mix' && (
           <Sidebar
             counts={counts}
-            q={q} onQ={setQ}
-            filter={filter} onFilter={setFilter}
-            tabCounts={{ all: all.length, vn: vnN, no: all.length - vnN }}
             text={text} onText={setText}
-            sample={sample} onSample={i => { setSample(i); setText(''); }}
+            sample={sample} onSample={i => { setSample(s => (s === i && !text ? null : i)); setText(''); }}
             onPickFonts={openFontPicker}
-            hiddenDemo={hiddenDemo.length}
-            onRestoreDemo={restoreDemo}
+            trashCount={trashed.length}
+            trashActive={view === 'trash'}
+            onOpenTrash={() => setView('trash')}
           />
         )}
         <main className="main">
@@ -286,13 +328,25 @@ export default function App() {
           {view === 'lib' && (
             <Library
               fonts={list}
-              txt={txt}
+              txtFor={txtFor}
               selOf={selOf}
               onSel={pickSel}
               onOpen={id => setGlyph(id)}
               onDropOn={(id, files) => { setDrag(false); addFiles(files, id); }}
               dlProps={dlProps}
-              onRemove={remove}
+              onRemove={id => setConfirm({ kind: 'trash', id })}
+              q={q} onQ={setQ}
+              filter={filter} onFilter={setFilter}
+              counts={{ all: all.length, vn: vnN, no: all.length - vnN }}
+            />
+          )}
+          {view === 'trash' && (
+            <Trash
+              fonts={trashed}
+              onRestore={restore}
+              onPurge={id => setConfirm({ kind: 'purge', id })}
+              onPurgeAll={() => setConfirm({ kind: 'purgeAll' })}
+              onBack={() => setView('lib')}
             />
           )}
           {view === 'mix' && all.length === 0 && (
@@ -309,6 +363,8 @@ export default function App() {
               bText={bText} onBText={setBText}
               hq={hq} onHQ={setHQ}
               bq={bq} onBQ={setBQ}
+              hFilter={hFilter} onHFilter={setHFilter}
+              bFilter={bFilter} onBFilter={setBFilter}
             />
           )}
         </main>
@@ -317,14 +373,14 @@ export default function App() {
           <GlyphPanel
             font={gf}
             si={selOf(gf)}
-            txt={txt}
+            txt={txtFor(gf)}
+            onSource={v => update(gf.id, { source: v })}
             dl={dlProps(gf)}
             onClose={() => setGlyph(null)}
             onSel={i => pickSel(gf.id, i)}
             onMix={() => { setMixH({ id: gf.id, vi: selOf(gf) }); setView('mix'); setGlyph(null); }}
-            onToggleVn={() => update(gf.id, { vn: !gf.vn })}
             onPickImg={() => { pendingImg.current = gf.id; imgInput.current?.click(); }}
-            onRemove={() => remove(gf.id)}
+            onRemove={() => setConfirm({ kind: 'trash', id: gf.id })}
           />
         )}
       </div>
@@ -340,6 +396,35 @@ export default function App() {
           e.target.value = '';
         }}
       />
+      {confirm && confirm.kind === 'trash' && cFont && (
+        <ConfirmDialog
+          title={`Bạn có chắc chắn muốn xóa ${cFont.name}?`}
+          body={`Font sẽ được chuyển vào "Đã xóa gần đây". Bạn có thể khôi phục trong ${TRASH_DAYS} ngày, sau đó font tự xóa vĩnh viễn.`}
+          confirmLabel="Xóa"
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => { trash(cFont.id); setConfirm(null); }}
+        />
+      )}
+      {confirm && confirm.kind === 'purge' && cFont && (
+        <ConfirmDialog
+          title={`Xóa vĩnh viễn ${cFont.name}?`}
+          body={cFont.demo
+            ? 'Font mẫu này sẽ bị gỡ hẳn khỏi kho và không khôi phục lại được.'
+            : `${cFont.variants.length} file font${cFont.img ? ' và ảnh preview' : ''} sẽ bị xóa khỏi trình duyệt và không lấy lại được.`}
+          confirmLabel="Xóa vĩnh viễn"
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => { purge(cFont.id); setConfirm(null); flash('Đã xóa vĩnh viễn ' + cFont.name); }}
+        />
+      )}
+      {confirm && confirm.kind === 'purgeAll' && (
+        <ConfirmDialog
+          title={`Xóa vĩnh viễn ${trashed.length} font?`}
+          body="Tất cả font trong Đã xóa gần đây sẽ bị xóa hẳn và không lấy lại được."
+          confirmLabel="Xóa tất cả"
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => { trashed.forEach(f => purge(f.id)); setConfirm(null); flash('Đã dọn sạch'); }}
+        />
+      )}
       {toast && <div className="toast">{toast}</div>}
     </>
   );

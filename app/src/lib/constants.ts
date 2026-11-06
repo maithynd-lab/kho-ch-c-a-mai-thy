@@ -7,6 +7,10 @@ export const SHOW_DEMO = true;
 /** Max variant chips shown on a library card before "+n". */
 export const MAX_CHIPS = 6;
 
+/** Deleted fonts stay in "Đã xóa gần đây" this long before being removed for good. */
+export const TRASH_DAYS = 30;
+export const TRASH_MS = TRASH_DAYS * 24 * 60 * 60 * 1000;
+
 const R = (a: number, b: number, s = 100) => {
   const o: number[] = [];
   for (let w = a; w <= b; w += s) o.push(w);
